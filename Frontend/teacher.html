@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teacher Dashboard</title>
+  <meta charset="UTF-8" />
+</head>
+
+<body>
+  <h1>Blockchain Attendance - Teacher</h1>
+
+  <button id="connectWalletButton" onclick="connectTeacher()">Connect Wallet</button>
+  <p id="teacherAddress"></p>
+  <p id="status"></p>
+
+  <hr>
+
+  <button id="createSessionButton" onclick="createSession()">Create Attendance Session</button>
+  <p id="sessionInfo"></p>
+
+  <canvas id="qr"></canvas>
+  <p><a id="qrLink" href="#" target="_blank" hidden>Open student attendance link</a></p>
+
+  <hr>
+
+  <button id="closeSessionButton" onclick="closeSession()">Close Session</button>
+  <button onclick="loadAttendees()">Refresh Attendees</button>
+
+  <h3>Attendees</h3>
+  <ul id="attendees"></ul>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="config.js"></script>
+  <script src="teacher.js"></script>
+</body>
+</html>

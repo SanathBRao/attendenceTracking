@@ -1,0 +1,9 @@
+[dotenv@17.2.4] injecting env (3) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+Server running on port 5000 🚀
+MongoDB Error: Error: querySrv ECONNREFUSED _mongodb._tcp.cluster0.jw7ajdy.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17) {
+  errno: undefined,
+  code: 'ECONNREFUSED',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.cluster0.jw7ajdy.mongodb.net'
+}
