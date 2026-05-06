@@ -1,54 +1,60 @@
-import { useState } from "react";
-import API from "./api";
 import React from "react";
+import { Routes, Route, Link } from "react-router-dom";
+
+import Student from "./pages/Student";
+import Teacher from "./pages/Teacher";
 
 function App() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [wallet, setWallet] = useState("");
-
-  const register = async () => {
-    try {
-      const res = await API.post("/register", {
-        name,
-        email,
-        walletAddress: wallet,
-        faceDescriptor: []
-      });
-
-      alert("Registered ✅");
-      console.log(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Error ❌");
-    }
-  };
-
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>FaceChain 🚀</h1>
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <h1>🚀 FaceChain Attendance System</h1>
 
-      <input
-        placeholder="Name"
-        onChange={(e) => setName(e.target.value)}
-      />
-      <br /><br />
+      {/* 🔗 Navigation */}
+      <nav style={{ marginBottom: "20px" }}>
+        <Link to="/" style={{ marginRight: "15px" }}>Home</Link>
+        <Link to="/student" style={{ marginRight: "15px" }}>Student</Link>
+        <Link to="/teacher">Teacher</Link>
+      </nav>
 
-      <input
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <br /><br />
-
-      <input
-        placeholder="Wallet Address"
-        onChange={(e) => setWallet(e.target.value)}
-      />
-      <br /><br />
-
-      <button onClick={register}>Register</button>
+      {/* 📍 Routes */}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/student" element={<Student />} />
+        <Route path="/teacher" element={<Teacher />} />
+      </Routes>
     </div>
   );
 }
 
 export default App;
+
+///////////////////////////////////////////////////////
+// 🏠 Simple Home Page
+///////////////////////////////////////////////////////
+
+function Home() {
+  return (
+    <div>
+      <h2>Welcome to FaceChain 🎯</h2>
+
+      <p>
+        A blockchain-based attendance system using QR codes and wallet authentication.
+      </p>
+
+      <ul>
+        <li>🎓 Students: Scan QR → Connect Wallet → Mark Attendance</li>
+        <li>👨‍🏫 Teachers: Create Session → Generate QR → Track Attendance</li>
+        <li>⛓️ Blockchain ensures tamper-proof records</li>
+      </ul>
+
+      <br />
+
+      <h3>Quick Start:</h3>
+      <ul>
+        <li>Go to <b>Teacher</b> → Create Session</li>
+        <li>Open QR link or scan</li>
+        <li>Go to <b>Student</b> → Mark Attendance</li>
+      </ul>
+    </div>
+  );
+}
