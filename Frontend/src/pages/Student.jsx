@@ -1,32 +1,44 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { ethers } from "ethers";
 import { Html5Qrcode } from "html5-qrcode";
 
 const CONTRACT_ADDRESS = "0x71b45128128f3a1Bf554a84F0fdc8cb724B9A5d0";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const ABI = [/* 👉 paste your FULL ABI here (unchanged) */];
+const ABI = [
+  "function markAttendance(uint256 sessionId) public"
+];
 
 function Student() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [sessionId, setSessionId] = useState("");
+  const [sessionId, setSessionId] = useState(
+    localStorage.getItem("facechain_sessionId") || ""
+  );
   const [status, setStatus] = useState("");
   const [address, setAddress] = useState("");
 
-  const providerRef = useRef(null);
-  const signerRef = useRef(null);
   const contractRef = useRef(null);
   const qrRef = useRef(null);
 
-  // 🔗 Connect MetaMask
-  const connectWallet = async () => {
-    if (!window.ethereum) {
-      setStatus("MetaMask not found ❌");
-      return;
-    }
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("sessionId");
 
+    if (id) {
+      setSessionId(id);
+      localStorage.setItem("facechain_sessionId", id);
+      setStatus(`Session ${id} loaded ✅`);
+    }
+  }, []);
+
+  const connectWallet = async () => {
     try {
+      if (!window.ethereum) {
+        setStatus("MetaMask not found ❌");
+        return false;
+      }
+
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts"
       });
@@ -35,28 +47,30 @@ function Student() {
       const signer = provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-      providerRef.current = provider;
-      signerRef.current = signer;
       contractRef.current = contract;
-
       setAddress(accounts[0]);
       setStatus("Wallet connected ✅");
+
+      return true;
     } catch (err) {
-      setStatus("Connection failed ❌");
+      console.error(err);
+      setStatus("Connection failed ❌ " + (err?.message || ""));
+      return false;
     }
   };
 
-  // 🧾 Register student (backend)
   const registerStudent = async () => {
     if (!name || !email || !address) {
-      setStatus("Fill all details ❌");
+      setStatus("Enter name, email, and connect wallet ❌");
       return false;
     }
 
     try {
-      await fetch(API_BASE_URL + "/register", {
+      const res = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           name,
           email,
@@ -64,14 +78,18 @@ function Student() {
         })
       });
 
+      if (!res.ok) {
+        throw new Error("Registration failed");
+      }
+
       return true;
-    } catch {
-      setStatus("Backend error ❌");
+    } catch (err) {
+      console.error(err);
+      setStatus("Backend registration failed ❌");
       return false;
     }
   };
 
-  // ⛓️ Mark attendance
   const markAttendance = async () => {
     if (!sessionId) {
       setStatus("Enter or scan session ID ❌");
@@ -79,25 +97,26 @@ function Student() {
     }
 
     if (!contractRef.current) {
-      await connectWallet();
+      const connected = await connectWallet();
+      if (!connected) return;
     }
 
-    const ok = await registerStudent();
-    if (!ok) return;
+    const registered = await registerStudent();
+    if (!registered) return;
 
     try {
       setStatus("Confirm transaction in MetaMask...");
+
       const tx = await contractRef.current.markAttendance(sessionId);
       await tx.wait();
 
-      setStatus("Attendance marked ✅");
+      setStatus("Attendance marked successfully ✅");
     } catch (err) {
       console.error(err);
-      setStatus("Transaction failed ❌");
+      setStatus("Transaction failed ❌ " + (err?.reason || err?.message || ""));
     }
   };
 
-  // 📷 Start QR scanner
   const startQR = async () => {
     try {
       const qr = new Html5Qrcode("qr-reader");
@@ -114,35 +133,46 @@ function Student() {
 
       setStatus("Scanning QR...");
     } catch (err) {
+      console.error(err);
       setStatus("Camera error ❌");
     }
   };
 
-  // 🛑 Stop QR scanner
   const stopQR = async () => {
-    if (qrRef.current) {
-      await qrRef.current.stop();
-      qrRef.current.clear();
-      qrRef.current = null;
+    try {
+      if (qrRef.current) {
+        await qrRef.current.stop();
+        qrRef.current.clear();
+        qrRef.current = null;
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // 🔍 Parse QR
   const handleQR = (data) => {
     try {
       const url = new URL(data);
       const id = url.searchParams.get("sessionId");
+      const contract = url.searchParams.get("contract");
+
+      if (contract && contract.toLowerCase() !== CONTRACT_ADDRESS.toLowerCase()) {
+        setStatus("Wrong contract QR ❌");
+        return;
+      }
 
       if (id) {
         setSessionId(id);
-        setStatus("QR loaded ✅");
+        localStorage.setItem("facechain_sessionId", id);
+        setStatus(`Session ${id} loaded from QR ✅`);
       } else {
         setStatus("Invalid QR ❌");
       }
     } catch {
       if (/^\d+$/.test(data)) {
         setSessionId(data);
-        setStatus("Session loaded ✅");
+        localStorage.setItem("facechain_sessionId", data);
+        setStatus(`Session ${data} loaded ✅`);
       } else {
         setStatus("Invalid QR ❌");
       }
@@ -150,47 +180,44 @@ function Student() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="card">
       <h2>🎓 Student Dashboard</h2>
 
       <button onClick={connectWallet}>Connect Wallet</button>
-      <p>{address}</p>
 
-      <br />
+      {address && <p className="wallet">{address}</p>}
 
       <input
         placeholder="Name"
+        value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <br /><br />
 
       <input
         placeholder="Email"
+        value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <br /><br />
 
       <input
         placeholder="Session ID"
         value={sessionId}
-        onChange={(e) => setSessionId(e.target.value)}
+        onChange={(e) => {
+          setSessionId(e.target.value);
+          localStorage.setItem("facechain_sessionId", e.target.value);
+        }}
       />
-      <br /><br />
 
-      <button onClick={markAttendance}>
-        Mark Attendance
-      </button>
+      <button onClick={markAttendance}>Mark Attendance</button>
 
-      <br /><br />
+      <br />
 
-      <button onClick={startQR}>Scan QR</button>
-      <button onClick={stopQR}>Stop QR</button>
+      <button className="secondary" onClick={startQR}>Scan QR</button>
+      <button className="secondary" onClick={stopQR}>Stop QR</button>
 
       <div id="qr-reader" style={{ width: "300px", marginTop: "20px" }}></div>
 
-      <p style={{ marginTop: "20px", color: "green" }}>
-        {status}
-      </p>
+      <p className="status success">{status}</p>
     </div>
   );
 }

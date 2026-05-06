@@ -4,243 +4,32 @@ import QRCode from "qrcode";
 
 const CONTRACT_ADDRESS = "0x71b45128128f3a1Bf554a84F0fdc8cb724B9A5d0";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const FRONTEND_BASE_URL = window.location.origin + "/student";
 
 const ABI = [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "student",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "time",
-				"type": "uint256"
-			}
-		],
-		"name": "AttendanceMarked",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			}
-		],
-		"name": "closeSession",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "createSession",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			}
-		],
-		"name": "markAttendance",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "endTime",
-				"type": "uint256"
-			}
-		],
-		"name": "SessionClosed",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "startTime",
-				"type": "uint256"
-			}
-		],
-		"name": "SessionCreated",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "student",
-				"type": "address"
-			}
-		],
-		"name": "getAttendance",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			}
-		],
-		"name": "getAttendees",
-		"outputs": [
-			{
-				"internalType": "address[]",
-				"name": "",
-				"type": "address[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "sessionCount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "sessions",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "startTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "endTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "active",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "teacher",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
+  "function createSession() public returns (uint256)",
+  "function closeSession(uint256 sessionId) public",
+  "function getAttendees(uint256 sessionId) public view returns (address[])",
+  "event SessionCreated(uint256 indexed sessionId, uint256 startTime)"
 ];
 
 function Teacher() {
   const [status, setStatus] = useState("");
   const [address, setAddress] = useState("");
-  const [sessionId, setSessionId] = useState(null);
+  const [sessionId, setSessionId] = useState(
+    localStorage.getItem("facechain_sessionId") || ""
+  );
   const [attendees, setAttendees] = useState([]);
 
   const contractRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // 🔗 Connect wallet
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      setStatus("MetaMask not found ❌");
-      return;
-    }
-
     try {
+      if (!window.ethereum) {
+        setStatus("MetaMask not found ❌");
+        return false;
+      }
+
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts"
       });
@@ -252,47 +41,57 @@ function Teacher() {
       contractRef.current = contract;
       setAddress(accounts[0]);
       setStatus("Wallet connected ✅");
-    } catch {
-      setStatus("Connection failed ❌");
+
+      return true;
+    } catch (err) {
+      console.error(err);
+      setStatus("Connection failed ❌ " + (err?.message || ""));
+      return false;
     }
   };
 
-  // 🧠 Create session
   const createSession = async () => {
     if (!contractRef.current) {
-      await connectWallet();
+      const connected = await connectWallet();
+      if (!connected) return;
     }
 
     try {
       setStatus("Confirm transaction in MetaMask...");
+
       const tx = await contractRef.current.createSession();
       const receipt = await tx.wait();
 
-      const event = receipt.events.find(e => e.event === "SessionCreated");
+      const event = receipt.events.find((e) => e.event === "SessionCreated");
       const newSessionId = event.args.sessionId.toNumber();
 
       setSessionId(newSessionId);
+      localStorage.setItem("facechain_sessionId", newSessionId);
 
-      // 📷 Generate QR
-      const qrData = `${FRONTEND_BASE_URL}?sessionId=${newSessionId}&contract=${CONTRACT_ADDRESS}`;
+      const qrData = `${window.location.origin}/student?sessionId=${newSessionId}&contract=${CONTRACT_ADDRESS}`;
 
       await QRCode.toCanvas(canvasRef.current, qrData, {
-        width: 280
+        width: 280,
+        margin: 2
       });
 
       setStatus("Session created ✅");
-      loadAttendees(newSessionId);
+      await loadAttendees(newSessionId);
     } catch (err) {
       console.error(err);
-      setStatus("Session creation failed ❌");
+      setStatus("Session creation failed ❌ " + (err?.reason || err?.message || ""));
     }
   };
 
-  // 🛑 Close session
   const closeSession = async () => {
     if (!sessionId) {
-      setStatus("No session ❌");
+      setStatus("No session selected ❌");
       return;
+    }
+
+    if (!contractRef.current) {
+      const connected = await connectWallet();
+      if (!connected) return;
     }
 
     try {
@@ -300,38 +99,45 @@ function Teacher() {
       await tx.wait();
 
       setStatus("Session closed ✅");
-    } catch {
-      setStatus("Close failed ❌");
+    } catch (err) {
+      console.error(err);
+      setStatus("Close failed ❌ " + (err?.reason || err?.message || ""));
     }
   };
 
-  // 📊 Load attendees
   const loadAttendees = async (id = sessionId) => {
-    if (!id) return;
+    if (!id) {
+      setStatus("No session ID ❌");
+      return;
+    }
+
+    if (!contractRef.current) {
+      const connected = await connectWallet();
+      if (!connected) return;
+    }
 
     try {
       const wallets = await contractRef.current.getAttendees(id);
 
-      // fetch student details
       const res = await fetch(
-        `${API_BASE_URL}/students/by-wallets?addresses=${wallets.join(",")}`
+        `${API_BASE_URL}/students/by-wallets?addresses=${encodeURIComponent(wallets.join(","))}`
       );
 
       const students = await res.json();
 
       const map = {};
-      students.forEach(s => {
+      students.forEach((s) => {
         map[s.walletAddress.toLowerCase()] = s;
       });
 
-      const list = wallets.map(addr => ({
+      const list = wallets.map((addr) => ({
         address: addr,
-        name: map[addr.toLowerCase()]?.name || "Unknown",
+        name: map[addr.toLowerCase()]?.name || "Unknown Student",
         email: map[addr.toLowerCase()]?.email || ""
       }));
 
       setAttendees(list);
-      setStatus("Attendees loaded ✅");
+      setStatus(`Loaded ${list.length} attendee(s) ✅`);
     } catch (err) {
       console.error(err);
       setStatus("Failed to load attendees ❌");
@@ -339,40 +145,36 @@ function Teacher() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="card">
       <h2>👨‍🏫 Teacher Dashboard</h2>
 
       <button onClick={connectWallet}>Connect Wallet</button>
-      <p>{address}</p>
 
-      <br />
+      {address && <p className="wallet">{address}</p>}
 
-      <button onClick={createSession}>
-        Create Session
-      </button>
-
-      <button onClick={closeSession}>
-        Close Session
-      </button>
-
-      <button onClick={loadAttendees}>
-        Refresh Attendees
-      </button>
+      <button onClick={createSession}>Create Session</button>
+      <button className="secondary" onClick={closeSession}>Close Session</button>
+      <button className="secondary" onClick={() => loadAttendees()}>Refresh Attendees</button>
 
       <h3>Session ID: {sessionId}</h3>
 
       <canvas ref={canvasRef}></canvas>
 
       <h3>Attendees</h3>
-      <ul>
-        {attendees.map((s, i) => (
-          <li key={i}>
-            {s.name} ({s.email}) - {s.address}
-          </li>
-        ))}
-      </ul>
 
-      <p style={{ color: "green" }}>{status}</p>
+      {attendees.length === 0 ? (
+        <p>No attendees yet.</p>
+      ) : (
+        attendees.map((s, i) => (
+          <div className="attendee" key={i}>
+            <b>{s.name}</b><br />
+            {s.email && <span>{s.email}<br /></span>}
+            <small>{s.address}</small>
+          </div>
+        ))
+      )}
+
+      <p className="status success">{status}</p>
     </div>
   );
 }
