@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Link } from "react-router-dom";
 
-import "./App.css";
+import "./app.css";
 
 import Student from "./pages/Student";
 import Teacher from "./pages/Teacher";
@@ -22,7 +22,7 @@ function Home() {
 
           <p>
             Create attendance sessions, generate QR codes,
-            monitor classroom attendance, and manage records securely.
+            manage classroom attendance, and monitor students live.
           </p>
         </div>
 
@@ -39,15 +39,17 @@ function Home() {
           <h3>⛓️ Blockchain Security</h3>
 
           <p>
-            Attendance data is stored securely on blockchain,
-            preventing tampering and fake attendance.
+            Attendance records are stored on blockchain,
+            making them transparent, immutable, and secure.
           </p>
         </div>
       </div>
 
       <div style={{ marginTop: "30px" }}>
         <Link to="/teacher">
-          <button>Open Teacher Dashboard</button>
+          <button>
+            Open Teacher Dashboard
+          </button>
         </Link>
 
         <Link to="/student">
@@ -64,7 +66,9 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1>🎯 FaceChain Attendance System</h1>
+        <h1>
+          🎯 FaceChain Attendance System
+        </h1>
 
         <div className="nav">
           <Link to="/">Home</Link>
@@ -80,7 +84,10 @@ function App() {
       </div>
 
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={<Home />}
+        />
 
         <Route
           path="/teacher"
