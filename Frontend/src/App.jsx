@@ -9,7 +9,7 @@ import Teacher from "./pages/Teacher";
 function Home() {
   return (
     <div className="card">
-      <h2>🚀 Welcome to FaceChain</h2>
+      <h2>🚀 Welcome to QRChain</h2>
 
       <p>
         A blockchain-powered smart attendance system using MetaMask,
@@ -67,7 +67,7 @@ function App() {
     <div className="app">
       <div className="header">
         <h1>
-          🎯 FaceChain Attendance System
+          🎯 QRChain Attendance System
         </h1>
 
         <div className="nav">
