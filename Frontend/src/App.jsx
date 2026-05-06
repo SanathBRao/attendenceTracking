@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Student from "./pages/Student";
 import Teacher from "./pages/Teacher";
 
-import "./App.css";
+import "./app.css";
 
 function Home() {
   return (
