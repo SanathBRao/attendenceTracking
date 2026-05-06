@@ -1,10 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
+
+import "./App.css";
 
 import Student from "./pages/Student";
 import Teacher from "./pages/Teacher";
-
-import "./app.css";
 
 function Home() {
   return (
@@ -22,7 +22,7 @@ function Home() {
 
           <p>
             Create attendance sessions, generate QR codes,
-            manage classroom attendance, and monitor students live.
+            monitor classroom attendance, and manage records securely.
           </p>
         </div>
 
@@ -39,8 +39,8 @@ function Home() {
           <h3>⛓️ Blockchain Security</h3>
 
           <p>
-            Attendance records are stored on blockchain,
-            making them transparent, immutable, and secure.
+            Attendance data is stored securely on blockchain,
+            preventing tampering and fake attendance.
           </p>
         </div>
       </div>
@@ -62,39 +62,37 @@ function Home() {
 
 function App() {
   return (
-    <Router>
-      <div className="app">
-        <div className="header">
-          <h1>🎯 FaceChain Attendance System</h1>
+    <div className="app">
+      <div className="header">
+        <h1>🎯 FaceChain Attendance System</h1>
 
-          <div className="nav">
-            <Link to="/">Home</Link>
+        <div className="nav">
+          <Link to="/">Home</Link>
 
-            <Link to="/teacher">
-              Teacher
-            </Link>
+          <Link to="/teacher">
+            Teacher
+          </Link>
 
-            <Link to="/student">
-              Student
-            </Link>
-          </div>
+          <Link to="/student">
+            Student
+          </Link>
         </div>
-
-        <Routes>
-          <Route path="/" element={<Home />} />
-
-          <Route
-            path="/teacher"
-            element={<Teacher />}
-          />
-
-          <Route
-            path="/student"
-            element={<Student />}
-          />
-        </Routes>
       </div>
-    </Router>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+
+        <Route
+          path="/teacher"
+          element={<Teacher />}
+        />
+
+        <Route
+          path="/student"
+          element={<Student />}
+        />
+      </Routes>
+    </div>
   );
 }
 
